@@ -43,7 +43,7 @@ class OSMParser(object):
         relations_callback=None, coords_callback=None, nodes_tag_filter=None,
         ways_tag_filter=None, relations_tag_filter=None, marshal_elem_data=False):
         self.concurrency = concurrency or default_concurrency()
-        assert self.concurrency >= 1
+        assert self.concurrency >= 0
         self.nodes_callback = nodes_callback
         self.ways_callback = ways_callback
         self.relations_callback = relations_callback
@@ -69,8 +69,12 @@ class OSMParser(object):
         """
         Parse a PBF file.
         """
-        from imposm.parser.pbf.multiproc import PBFMultiProcParser
-        return self._parse(filename, PBFMultiProcParser)
+        if self.concurrency == 0:
+            from imposm.parser.pbf.monoproc import PBFMonoProcParser
+            return self._parse(filename, PBFMonoProcParser)
+        else:
+            from imposm.parser.pbf.multiproc import PBFMultiProcParser
+            return self._parse(filename, PBFMultiProcParser)
     
     def parse_xml_file(self, filename):
         """
